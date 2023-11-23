@@ -31,15 +31,16 @@ def select_destination_folder():
 
 def extract_frames(video_file, destination_folder):
     """
-    Extracts frames from the given video file using GPU acceleration (if available).
+    Extracts frames from the given video file using CPU-based extraction.
+    Addresses the deprecated -vsync parameter.
     """
     frame_folder = os.path.join(destination_folder, "temporary_frames")
     os.makedirs(frame_folder, exist_ok=True)
 
-    # Using FFmpeg with hardware-accelerated decoding (NVDEC)
+    # Updated FFmpeg command for CPU-based frame extraction
     ffmpeg_command = [
-        "ffmpeg", "-hwaccel", "cuda", "-hwaccel_output_format", "cuda", "-i", video_file, 
-        "-vf", "hwdownload,format=nv12", "-vsync", "0",
+        "ffmpeg", "-i", video_file,
+        "-vf", "fps=fps=23.98",  # Set this to match the source video's fps
         os.path.join(frame_folder, "frame_%04d.png")
     ]
     subprocess.run(ffmpeg_command)
