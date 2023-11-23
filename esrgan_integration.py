@@ -3,7 +3,6 @@ import logging
 import subprocess
 from utils import handle_subprocess_error
 
-
 class ESRGANHandler:
     def __init__(self):
         self.realesrgan_executable = os.path.join(
@@ -21,15 +20,11 @@ class ESRGANHandler:
         os.makedirs(output_folder, exist_ok=True)
         realesrgan_command = [
             self.realesrgan_executable,
-            "-i",
-            frame_folder,
-            "-o",
-            output_folder,
-            "-n",
-            "realesr-animevideov3",
-            "-s",
-            "2",
-            "-f",
-            "png",
+            "-i", frame_folder,
+            "-o", output_folder,
+            "-n", "realesr-animevideov3",
+            "-s", "2",
+            "-f", "png",
+            "-g", "1"  # Using GPU ID 1, change if GPU ID is different
         ]
         self.run_subprocess(realesrgan_command)

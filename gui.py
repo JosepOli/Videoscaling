@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
     QApplication,
     QListWidget,
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from video_processor import VideoProcessor
 import sys
 from PyQt5.QtCore import QThread
@@ -18,9 +18,12 @@ import logging
 
 
 class VideoProcessingThread(QThread):
+    progress_signal = pyqtSignal(str)  # Signal for progress updates
+
     def __init__(self, processor):
         QThread.__init__(self)
         self.processor = processor
+        self.processor.set_progress_callback(self.progress_signal.emit)
 
     def run(self):
         self.processor.run()

@@ -6,10 +6,20 @@ from utils import handle_subprocess_error
 
 
 class FFmpegHandler:
-    def run_subprocess(self, command: list) -> subprocess.CompletedProcess:
+    def run_subprocess(
+        self, command: list, progress_callback=None
+    ) -> subprocess.CompletedProcess:
         try:
-            result = subprocess.run(command, capture_output=True, check=True, text=True)
-            return result
+            process = subprocess.Popen(
+                command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+            )
+            for line in process.stdout:
+                if progress_callback:
+                    progress_callback(
+                        line
+                    )  # Call the callback function with the output line
+            process.wait()
+            return process
         except subprocess.CalledProcessError as e:
             logging.error(f"Error running command {' '.join(command)}: {e.stderr}")
             return None

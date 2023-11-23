@@ -18,16 +18,30 @@ class VideoProcessor(QObject):
         self.ffmpeg_handler = FFmpegHandler()
         self.esrgan_handler = ESRGANHandler()
 
+    def set_progress_callback(self, callback):
+        self.progress_callback = callback
+
     def process_video(self, video_file: str):
         logging.info(f"Processing video: {video_file}")
-        frame_folder = self.ffmpeg_handler.extract_frames(
-            video_file, self.destination_folder
+
+        # Extract the frame rate of the video
+        frame_rate = self.ffmpeg_handler.get_frame_rate(video_file)
+
+        frame_folder = os.path.join(self.destination_folder, "temp_frames")
+        os.makedirs(frame_folder, exist_ok=True)
+        ffmpeg_command = [
+            "ffmpeg",
+            "-i",
+            video_file,
+            "-vf",
+            f"fps={frame_rate}",
+            os.path.join(frame_folder, "frame_%04d.png"),
+        ]
+
+        # Run the FFmpeg command and handle progress updates
+        self.ffmpeg_handler.run_subprocess(
+            ffmpeg_command, progress_callback=self.progress_callback
         )
-        self.esrgan_handler.upscale_frames(frame_folder)
-        self.ffmpeg_handler.reassemble_video(
-            video_file, frame_folder, self.destination_folder
-        )
-        os.rmdir(frame_folder)
 
     def run(self):
         logging.info("Starting video processing")
