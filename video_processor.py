@@ -19,7 +19,7 @@ class VideoProcessor(QObject):
         self.esrgan_handler = ESRGANHandler()
 
     def process_video(self, video_file: str):
-        logging.info(f"Processing {video_file}...")
+        logging.info(f"Processing video: {video_file}")
         frame_folder = self.ffmpeg_handler.extract_frames(
             video_file, self.destination_folder
         )
@@ -30,6 +30,7 @@ class VideoProcessor(QObject):
         os.rmdir(frame_folder)
 
     def run(self):
+        logging.info("Starting video processing")
         total_videos = len(self.video_files)
         for index, video_file in enumerate(self.video_files):
             self.process_video(video_file)

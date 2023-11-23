@@ -14,6 +14,7 @@ from video_processor import VideoProcessor
 import sys
 from PyQt5.QtCore import QThread
 from utils import setup_logging
+import logging
 
 
 class VideoProcessingThread(QThread):
@@ -98,8 +99,11 @@ class MainWindow(QMainWindow):
             video_files = [
                 self.file_list.item(i).text() for i in range(self.file_list.count())
             ]
+            logging.info(f"Upscaling videos: {video_files} to {destination_folder}")
+
             self.video_processor = VideoProcessor(destination_folder, video_files)
             self.video_processor.progress_updated.connect(self.update_progress)
+
             self.processing_thread = VideoProcessingThread(self.video_processor)
             self.processing_thread.finished.connect(self.on_processing_finished)
             self.processing_thread.start()
