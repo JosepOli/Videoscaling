@@ -31,11 +31,18 @@ def select_destination_folder():
 
 def extract_frames(video_file, destination_folder):
     """
-    Extracts frames from the given video file.
+    Extracts frames from the given video file using GPU acceleration (if available).
     """
     frame_folder = os.path.join(destination_folder, "temporary_frames")
     os.makedirs(frame_folder, exist_ok=True)
-    subprocess.run(["ffmpeg", "-i", video_file, os.path.join(frame_folder, "frame_%04d.png")])
+
+    # Using FFmpeg with hardware-accelerated decoding (NVDEC)
+    ffmpeg_command = [
+        "ffmpeg", "-hwaccel", "cuda", "-hwaccel_output_format", "cuda", "-i", video_file, 
+        "-vf", "hwdownload,format=nv12", "-vsync", "0",
+        os.path.join(frame_folder, "frame_%04d.png")
+    ]
+    subprocess.run(ffmpeg_command)
     return frame_folder
 
 def upscale_frames(frame_folder):
