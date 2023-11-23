@@ -11,15 +11,20 @@ class FFmpegHandler:
     ) -> subprocess.CompletedProcess:
         try:
             process = subprocess.Popen(
-                command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                universal_newlines=True,
             )
-            for line in process.stdout:
+            for line in iter(process.stdout.readline, ""):
                 if progress_callback:
-                    progress_callback(
-                        line
-                    )  # Call the callback function with the output line
-            process.wait()
-            return process
+                    progress_callback(line)
+            process.stdout.close()
+            return_code = process.wait()
+            if return_code != 0:
+                raise subprocess.CalledProcessError(return_code, command)
         except subprocess.CalledProcessError as e:
             logging.error(f"Error running command {' '.join(command)}: {e.stderr}")
             return None

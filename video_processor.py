@@ -5,6 +5,7 @@ from ffmpeg_integration import FFmpegHandler
 from esrgan_integration import ESRGANHandler
 from typing import List
 from utils import handle_subprocess_error, setup_logging
+import re
 
 
 class VideoProcessor(QObject):
@@ -50,3 +51,15 @@ class VideoProcessor(QObject):
             self.process_video(video_file)
             progress = int((index + 1) / total_videos * 100)
             self.progress_updated.emit(progress)
+
+        def handle_ffmpeg_output(self, line):
+            # Parse the FFmpeg output line to extract frame number or other progress indicators
+            # For example, if the line contains 'frame=123', extract '123' as the current frame
+            # Calculate progress percentage based on total frames and emit signal
+            # Example parsing (you may need to adjust it based on actual FFmpeg output):
+            match = re.search(r"frame=\s*(\d+)", line)
+            if match:
+                current_frame = int(match.group(1))
+                # Assuming self.total_frames is the total number of frames in the video
+                progress = int((current_frame / self.total_frames) * 100)
+                self.progress_updated.emit(progress)

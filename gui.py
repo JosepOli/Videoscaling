@@ -27,7 +27,7 @@ class VideoProcessingThread(QThread):
 
     def run(self):
         self.processor.run()
-        self.finished.emit()  # Signal to indicate the thread has finished
+        self.finished.emit()
 
 
 class FileListWidget(QListWidget):
