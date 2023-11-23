@@ -2,6 +2,7 @@ import subprocess
 import re
 import os
 import logging
+from utils import handle_subprocess_error
 
 
 class FFmpegHandler:

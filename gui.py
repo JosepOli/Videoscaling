@@ -12,6 +12,18 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from video_processor import VideoProcessor
 import sys
+from PyQt5.QtCore import QThread
+from utils import setup_logging
+
+
+class VideoProcessingThread(QThread):
+    def __init__(self, processor):
+        QThread.__init__(self)
+        self.processor = processor
+
+    def run(self):
+        self.processor.run()
+        self.finished.emit()  # Signal to indicate the thread has finished
 
 
 class FileListWidget(QListWidget):
@@ -86,14 +98,16 @@ class MainWindow(QMainWindow):
             video_files = [
                 self.file_list.item(i).text() for i in range(self.file_list.count())
             ]
-            for video_file in video_files:
-                processor = VideoProcessor(destination_folder, [video_file])
-                processor.progress_updated.connect(self.update_progress)
-                processor.start()
-                processor.wait()  # Wait for the thread to finish
-            self.status_label.setText("Upscaling Completed.")
+            self.video_processor = VideoProcessor(destination_folder, video_files)
+            self.video_processor.progress_updated.connect(self.update_progress)
+            self.processing_thread = VideoProcessingThread(self.video_processor)
+            self.processing_thread.finished.connect(self.on_processing_finished)
+            self.processing_thread.start()
         else:
             self.status_label.setText("No videos selected or destination not set.")
+
+    def on_processing_finished(self):
+        self.status_label.setText("Upscaling Completed.")
 
     def update_progress(self, progress):
         self.progress_bar.setValue(progress)
@@ -108,6 +122,7 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == "__main__":
+    setup_logging()
     app = QApplication(sys.argv)
     main_window = MainWindow()
     main_window.show()

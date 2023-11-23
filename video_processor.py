@@ -3,6 +3,8 @@ import logging
 from PyQt5.QtCore import QObject, pyqtSignal
 from ffmpeg_integration import FFmpegHandler
 from esrgan_integration import ESRGANHandler
+from typing import List
+from utils import handle_subprocess_error, setup_logging
 
 
 class VideoProcessor(QObject):
