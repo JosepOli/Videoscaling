@@ -1,11 +1,10 @@
-import os
-import logging
+import os, re, logging
 from PyQt5.QtCore import QObject, pyqtSignal
 from ffmpeg_integration import FFmpegHandler
 from esrgan_integration import ESRGANHandler
 from typing import List
 from utils import handle_subprocess_error, setup_logging
-import re
+from datetime import datetime
 
 
 class VideoProcessor(QObject):
@@ -52,14 +51,31 @@ class VideoProcessor(QObject):
             progress = int((index + 1) / total_videos * 100)
             self.progress_updated.emit(progress)
 
-        def handle_ffmpeg_output(self, line):
-            # Parse the FFmpeg output line to extract frame number or other progress indicators
-            # For example, if the line contains 'frame=123', extract '123' as the current frame
-            # Calculate progress percentage based on total frames and emit signal
-            # Example parsing (you may need to adjust it based on actual FFmpeg output):
-            match = re.search(r"frame=\s*(\d+)", line)
-            if match:
-                current_frame = int(match.group(1))
-                # Assuming self.total_frames is the total number of frames in the video
-                progress = int((current_frame / self.total_frames) * 100)
-                self.progress_updated.emit(progress)
+    def get_total_frames(self):
+        # Assuming self.video_duration and self.frame_rate are already set
+        total_seconds = self.get_seconds(self.video_duration)
+        return int(total_seconds * self.frame_rate)
+
+    @staticmethod
+    def get_seconds(duration_str):
+        # Convert duration string (HH:MM:SS.ms) to total seconds
+        time_obj = datetime.strptime(duration_str, "%H:%M:%S.%f")
+        return (
+            time_obj.hour * 3600
+            + time_obj.minute * 60
+            + time_obj.second
+            + time_obj.microsecond / 1e6
+        )
+
+    def handle_ffmpeg_output(self, line):
+        print("FFmpeg output:", line)
+        # Parse the FFmpeg output line to extract frame number or other progress indicators
+        # For example, if the line contains 'frame=123', extract '123' as the current frame
+        # Calculate progress percentage based on total frames and emit signal
+        # Example parsing (you may need to adjust it based on actual FFmpeg output):
+        match = re.search(r"frame=\s*(\d+)", line)
+        if match:
+            current_frame = int(match.group(1))
+            total_frames = self.get_total_frames()
+            progress = int((current_frame / total_frames) * 100)
+            self.progress_updated.emit(progress)

@@ -26,6 +26,7 @@ class VideoProcessingThread(QThread):
         self.processor.set_progress_callback(self.progress_signal.emit)
 
     def run(self):
+        print("Video processing thread started")
         self.processor.run()
         self.finished.emit()
 
@@ -106,6 +107,7 @@ class MainWindow(QMainWindow):
 
             self.video_processor = VideoProcessor(destination_folder, video_files)
             self.video_processor.progress_updated.connect(self.update_progress)
+            print("Progress signal connected")
 
             self.processing_thread = VideoProcessingThread(self.video_processor)
             self.processing_thread.finished.connect(self.on_processing_finished)
@@ -117,6 +119,7 @@ class MainWindow(QMainWindow):
         self.status_label.setText("Upscaling Completed.")
 
     def update_progress(self, progress):
+        print(f"Updating progress bar: {progress}%")
         self.progress_bar.setValue(progress)
 
     def select_files(self):

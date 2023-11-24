@@ -1,14 +1,11 @@
 import subprocess
-import re
 import os
 import logging
 from utils import handle_subprocess_error
 
 
 class FFmpegHandler:
-    def run_subprocess(
-        self, command: list, progress_callback=None
-    ) -> subprocess.CompletedProcess:
+    def run_subprocess(self, command: list, progress_callback=None):
         try:
             process = subprocess.Popen(
                 command,
@@ -19,6 +16,7 @@ class FFmpegHandler:
                 universal_newlines=True,
             )
             for line in iter(process.stdout.readline, ""):
+                print(line)  # Print every line for debugging
                 if progress_callback:
                     progress_callback(line)
             process.stdout.close()
