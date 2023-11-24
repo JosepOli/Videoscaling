@@ -65,47 +65,33 @@ def list_upscaling_models(models_folder):
 
 
 def user_select_model(models):
-    """
-    Prompts the user to select an upscaling model from a list using a list box.
-    """
-
     def on_select(evt):
-        # Handle event to retrieve selection from the listbox
         index = evt.widget.curselection()
         if index:
             selection = evt.widget.get(index)
-            # Set the user's selection
-            user_selection.append(selection)
-            # Schedule the window to close shortly after
-            root.after(100, root.destroy)
+            user_selection[0] = selection
+            root.quit()  # Properly exit the Tkinter mainloop
 
-    # Initialize the root Tkinter window
     root = tk.Tk()
     root.title("Select Upscaling Model")
 
-    # Create the listbox and populate it with the model names
     listbox = tk.Listbox(root, width=50, height=20)
     for item in models:
         listbox.insert(tk.END, item)
     listbox.pack(side="left", fill="both", expand=True)
 
-    # Create a scrollbar and attach it to the listbox
     scrollbar = tk.Scrollbar(root, orient="vertical")
     scrollbar.config(command=listbox.yview)
     scrollbar.pack(side="right", fill="y")
     listbox.config(yscrollcommand=scrollbar.set)
 
-    # This list will hold the user's selection
-    user_selection = []
-
-    # Bind the selection event to the handler function
+    user_selection = [None]
     listbox.bind("<<ListboxSelect>>", on_select)
 
-    # Start the Tkinter event loop
     root.mainloop()
+    root.destroy()  # Ensure the Tkinter window is destroyed after exiting the mainloop
 
-    # Return the user's selection if one was made
-    return user_selection[0] if user_selection else None
+    return user_selection[0]
 
 
 def extract_and_upscale_frames(
@@ -149,6 +135,7 @@ def extract_and_upscale_frames(
             str(scale_factor),
             "-f",
             "png",
+            "-g",
         ]
     )
 
